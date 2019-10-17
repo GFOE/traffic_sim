@@ -67,6 +67,11 @@ class Vessel:
         self.max_speed = 8.0
         self.min_speed = 0.0
         self.speed_change_rate = 1.5
+        
+        self.dims = {'stbd':random.uniform(1,3),
+                     'port':random.uniform(1,3),
+                     'bow':random.uniform(2,5),
+                     'stern':random.uniform(3,8)}
     
     def iterate(self, data):
         if self.last_time is not None:
@@ -99,6 +104,11 @@ class Vessel:
             contact.heading = self.heading
             contact.cog = self.heading
             contact.sog = self.speed
+            
+            contact.dimension_to_stbd = self.dims['stbd']
+            contact.dimension_to_port = self.dims['port']
+            contact.dimension_to_bow = self.dims['bow']
+            contact.dimension_to_stern = self.dims['stern']
             
             contact.callsign = self.target_id
             
