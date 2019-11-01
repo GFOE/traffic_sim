@@ -121,18 +121,19 @@ class Vessel:
         return d
 
     def joystickCallback(self,data):
-        self.throttle = data.axes[1]
-        self.rudder = -data.axes[3]
-        if data.buttons[8]:
-            self.throttle = 0.0
-            self.rudder = 0.0
-            
-            distance = 100
-            joy_id = int(self.target_id[-1])
-            bearing = -45.0 + 90*joy_id
+        if len(data.axes) >= 4 and len(data.buttons) >= 9:
+            self.throttle = data.axes[1]
+            self.rudder = -data.axes[3]
+            if data.buttons[8]:
+                self.throttle = 0.0
+                self.rudder = 0.0
                 
-            self.position = project11.geodesic.direct(math.radians(asv_position.position.longitude),math.radians(asv_position.position.latitude),math.radians(bearing),distance)
-            self.heading = math.radians(bearing)
+                distance = 100
+                joy_id = int(self.target_id[-1])
+                bearing = -45.0 + 90*joy_id
+                    
+                self.position = project11.geodesic.direct(math.radians(asv_position.position.longitude),math.radians(asv_position.position.latitude),math.radians(bearing),distance)
+                self.heading = math.radians(bearing)
 
             
 
