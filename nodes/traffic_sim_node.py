@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from builtins import object
 import rospy
 from geographic_msgs.msg import GeoPointStamped
 from marine_msgs.msg import Contact
@@ -22,7 +26,7 @@ next_id = 1
 
 contact_pub = None
 
-class Vessel:
+class Vessel(object):
     def __init__(self,start_time=None, joy_topic=None):
         global next_id
         self.last_time = start_time
@@ -32,7 +36,7 @@ class Vessel:
         else:
             distance = 100
             joy_id = int(joy_topic[-1])
-            print 'joy_id',joy_id
+            print('joy_id',joy_id)
             bearing = -45.0 + 90*joy_id
                 
         self.position = project11.geodesic.direct(math.radians(asv_position.position.longitude),math.radians(asv_position.position.latitude),math.radians(bearing),distance)
@@ -147,7 +151,7 @@ def iterate(data):
         vessels.remove(v)
     for v in vessels:
         v.iterate(data)
-    for v in joy_vessels.values():
+    for v in list(joy_vessels.values()):
         v.iterate(data)
     
     if asv_position is not None and not data.current_real.is_zero():
