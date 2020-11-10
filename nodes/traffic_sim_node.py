@@ -102,7 +102,7 @@ class Vessel(object):
             contact.header.stamp = data.current_real
             contact.contact_source = Contact.CONTACT_SOURCE_AIS
             contact.mmsi = self.mmsi
-            contact.name = str('Vessel known as '+self.target_id).encode('utf-8')
+            contact.name = 'Vessel known as '+self.target_id
             contact.position.latitude = math.degrees(self.position[1])
             contact.position.longitude = math.degrees(self.position[0])
             contact.heading = self.heading
@@ -114,7 +114,7 @@ class Vessel(object):
             contact.dimension_to_bow = self.dims['bow']
             contact.dimension_to_stern = self.dims['stern']
             
-            contact.callsign = self.target_id.encode('utf-8')
+            contact.callsign = self.target_id
             
             contact_pub.publish(contact)
             
