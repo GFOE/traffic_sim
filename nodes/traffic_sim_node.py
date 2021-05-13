@@ -6,11 +6,14 @@ from builtins import range
 from builtins import object
 import rospy
 from geographic_msgs.msg import GeoPointStamped
+from nav_msgs.msg import Odometry
 from marine_msgs.msg import Contact
 from sensor_msgs.msg import Joy
 import project11
 import random
 import math
+import tf2_ros
+from tf2_geometry_msgs import do_transform_pose
 
 asv_position = None
 
@@ -26,6 +29,7 @@ next_id = 1
 
 contact_pub = None
 
+
 class Vessel(object):
     def __init__(self,start_time=None, joy_topic=None):
         global next_id
@@ -39,7 +43,7 @@ class Vessel(object):
             print('joy_id',joy_id)
             bearing = -45.0 + 90*joy_id
                 
-        self.position = project11.geodesic.direct(math.radians(asv_position.position.longitude),math.radians(asv_position.position.latitude),math.radians(bearing),distance)
+        self.position = project11.geodesic.direct(asv_position[1],asv_position[0],math.radians(bearing),distance)
         
         # itinitate a random heading that generally points towards the vehicle
         self.heading = math.radians((bearing+180+random.uniform(-90,90))%360)
@@ -91,6 +95,13 @@ class Vessel(object):
                         self.speed = max(self.speed+delta_speed,target_speed)
                 if self.rudder is not None:
                     self.rate_of_turn = self.rudder
+                else:
+                    if random.randrange(1000) == 0:
+                        self.heading = math.radians((math.degrees(self.heading)+random.uniform(-135,135))%360)
+                        self.last_report_time = None
+
+
+
                         
                 distance = delta_t.to_sec()*self.speed
                 self.heading += self.rate_of_turn*delta_t.to_sec()
@@ -121,7 +132,7 @@ class Vessel(object):
             self.last_report_time = data.current_real
             
     def distance(self):
-        b,d = project11.geodesic.inverse(math.radians(asv_position.position.longitude),math.radians(asv_position.position.latitude),self.position[0],self.position[1])
+        b,d = project11.geodesic.inverse(asv_position[1],asv_position[0],self.position[0],self.position[1])
         return d
 
     def joystickCallback(self,data):
@@ -136,7 +147,7 @@ class Vessel(object):
                 joy_id = int(self.target_id[-1])
                 bearing = -45.0 + 90*joy_id
                     
-                self.position = project11.geodesic.direct(math.radians(asv_position.position.longitude),math.radians(asv_position.position.latitude),math.radians(bearing),distance)
+                self.position = project11.geodesic.direct(asv_position[1],asv_position[0],math.radians(bearing),distance)
                 self.heading = math.radians(bearing)
 
             
@@ -165,16 +176,25 @@ def iterate(data):
                 
         
 
-def positionCallback(data):
+def odomCallback(data):
     global asv_position
-    asv_position = data
+    try:
+        odom_to_earth = tfBuffer.lookup_transform("earth", data.header.frame_id, rospy.Time(0.0), rospy.Duration(0.5))
+        ecef = do_transform_pose(data.pose, odom_to_earth).pose.position
+        asv_position = project11.wgs84.fromECEFtoLatLong(ecef.x, ecef.y, ecef.z)
+    except Exception as e:
+        print(e)
+        
 
 if __name__ == '__main__':
     rospy.init_node('traffic_sim')
     
-    contact_pub = rospy.Publisher('/contact',Contact,queue_size = 10)
+    tfBuffer = tf2_ros.Buffer()
+    tfListener = tf2_ros.TransformListener(tfBuffer)
+
+    contact_pub = rospy.Publisher('sensors/ais/contact',Contact,queue_size = 10)
     
-    rospy.Subscriber('/position', GeoPointStamped, positionCallback)
+    rospy.Subscriber('odom', Odometry, odomCallback)
     
     rospy.Timer(rospy.Duration.from_sec(0.2),iterate)
     rospy.spin()
