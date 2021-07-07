@@ -1,9 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from __future__ import print_function
-from builtins import str
-from builtins import range
-from builtins import object
 import rospy
 from geographic_msgs.msg import GeoPointStamped
 from nav_msgs.msg import Odometry
