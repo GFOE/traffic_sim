@@ -7,7 +7,7 @@ from builtins import object
 import rospy
 from geographic_msgs.msg import GeoPointStamped
 from nav_msgs.msg import Odometry
-from marine_msgs.msg import Contact
+from project11_msgs.msg import Contact
 from sensor_msgs.msg import Joy
 import project11
 import random
